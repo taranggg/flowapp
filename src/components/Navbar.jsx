@@ -1,11 +1,13 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import AppSidebar from "./AppSidebar";
+import defaultAvatar from "../assets/default-avatar.svg";
 
 function Navbar() {
   return (
     <nav
-      className="sm:flex m-4 sm:items-center sm:justify-between px-4 py-2 border-b border-white/10 bg-white/10 backdrop-blur-xl shadow-lg rounded-xl"
+      className="sticky top-4 z-50 sm:flex m-4 sm:items-center sm:justify-between px-4 py-2 border-b border-white/10 bg-white/10 backdrop-blur-xl shadow-lg rounded-xl"
       style={{
         WebkitBackdropFilter: "blur(20px)",
         backdropFilter: "blur(20px)",
@@ -13,9 +15,12 @@ function Navbar() {
     >
       <div className="flex flex-row gap-2 items-center w-fit">
         <SidebarTrigger />
-        <div className="hidden sm:flex text-2xl font-bold text-primary dark:text-red-400">
+        <Link
+          to="/"
+          className="hidden sm:flex text-2xl font-bold text-primary dark:text-red-400 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           Enablerminds
-        </div>
+        </Link>
       </div>
       <div className="hidden sm:flex items-center gap-4 w-fit">
         <button className="p-2 rounded-full hover:bg-primary/10 dark:hover:bg-red-400/20">
@@ -51,7 +56,11 @@ function Navbar() {
             <path d="M11 11h0" />
           </svg>
         </button>
-        <div className="w-8 h-8 rounded-full bg-white/30 border border-white/40 overflow-hidden"></div>
+        <img
+          src={defaultAvatar}
+          alt="avatar"
+          className="w-8 h-8 rounded-full bg-white/30 border border-white/40 object-cover"
+        />
       </div>
     </nav>
   );
