@@ -247,7 +247,7 @@ const CanvasView = () => {
             onClick={handleAddNode}
             title="Add Node"
             aria-label="Add node"
-            className="rounded-full w-10 h-10 p-0 shadow-lg flex items-center justify-center transition-transform duration-150 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 bg-gradient-to-br from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-xl"
+            className="rounded-full w-10 h-10 p-0 shadow-2xl flex items-center justify-center transition-transform transition-shadow duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50 bg-gradient-to-br from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-2xl elevated-btn"
           >
             {/* simple plus icon (no outer circle) */}
             <svg
