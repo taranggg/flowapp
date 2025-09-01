@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./views/Home";
-import CanvasView from "./views/ChatFlow/CanvasView";
-import ChatFlowIndex from "./views/ChatFlow/Index";
+
+import Home from "./routes/Home";
+import ChatFlowIndex from "./routes/ChatflowRoutes";
+import CanvasView from "./views/canvas/CanvasView";
 
 function App() {
   return (

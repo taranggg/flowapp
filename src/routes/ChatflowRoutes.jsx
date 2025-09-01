@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { SidebarProvider, SidebarInset } from "../../components/ui/sidebar";
-import AppSidebar from "../../components/AppSidebar";
-import Navbar from "@/components/Navbar";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
+import { SidebarInset, SidebarProvider } from "../components/ui/sidebar";
+import Navbar from "../components/navbar";
+import AppSidebar from "../components/AppSidebar";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const ChatFlowIndex = () => {
   const navigate = useNavigate();
