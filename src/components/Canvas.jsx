@@ -121,7 +121,10 @@ const Canvas = forwardRef(
       []
     );
     const onConnect = useCallback(
-      (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
+      (params) =>
+        setEdges((edgesSnapshot) =>
+          addEdge({ ...params, animated: true }, edgesSnapshot)
+        ),
       []
     );
 
