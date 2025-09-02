@@ -72,7 +72,7 @@ const CanvasView = () => {
 
     // Find existing copies to determine the next number
     const baseName = nodeData.title || "ReAct Agent for LLMs";
-    const existingCopies = nodes.filter(
+    const existingCopies = currentNodes.filter(
       (node) =>
         node.data.title &&
         (node.data.title === baseName ||

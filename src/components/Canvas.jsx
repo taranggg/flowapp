@@ -56,9 +56,51 @@ const Canvas = forwardRef(
       onDeleteNode,
       onInfoNode
     );
-    // Sync local state when propNodes changes
+    // Sync local state when propNodes changes, preserving existing positions and data
     useEffect(() => {
-      if (propNodes) setNodes(propNodes);
+      if (propNodes) {
+        setNodes((currentNodes) => {
+          // If propNodes has more nodes than current (new node added)
+          if (propNodes.length > currentNodes.length) {
+            // Create a map of current nodes by ID
+            const currentNodesMap = new Map();
+            currentNodes.forEach((node) => {
+              currentNodesMap.set(node.id, node);
+            });
+
+            // Update propNodes with current state for existing nodes
+            const updatedNodes = propNodes.map((node) => {
+              const currentNode = currentNodesMap.get(node.id);
+              return currentNode
+                ? {
+                    ...node,
+                    position: currentNode.position,
+                    data: { ...node.data, ...currentNode.data },
+                  }
+                : node;
+            });
+
+            return updatedNodes;
+          }
+
+          // For other cases (like deletion), use propNodes as is but preserve positions
+          const currentNodesMap = new Map();
+          currentNodes.forEach((node) => {
+            currentNodesMap.set(node.id, node);
+          });
+
+          return propNodes.map((node) => {
+            const currentNode = currentNodesMap.get(node.id);
+            return currentNode
+              ? {
+                  ...node,
+                  position: currentNode.position,
+                  data: { ...node.data, ...currentNode.data },
+                }
+              : node;
+          });
+        });
+      }
     }, [propNodes]);
 
     const [edges, setEdges] = useState(propEdges ?? []);

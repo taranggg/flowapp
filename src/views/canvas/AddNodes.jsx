@@ -15,12 +15,12 @@ import { Separator } from "../../components/ui/separator";
 const nodeTypes = {
   agents: [
     {
-      id: "react-agent",
-      name: "ReAct Agent",
+      id: "react-agent-for-llms",
+      name: "ReAct Agent for LLMs",
       description:
         "Agent used to answer queries with chain of thoughts for self-guided task completion",
       icon: Bot,
-      type: "ReActAgentNode",
+      type: "AgentNode",
       category: "Agents",
     },
   ],
@@ -53,7 +53,7 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
   const handleAddNodeClick = (node) => {
     if (onAddNode) {
       onAddNode(node);
-      onOpenChange(false); // Close the dialog after adding
+      onOpenChange(false);
     }
   };
 
