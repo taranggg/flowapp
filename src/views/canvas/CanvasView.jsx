@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Canvas from "../../components/Canvas";
+import AddNodes from "./AddNodes";
+import AdditionalParametersModal from "./AdditionalParametersModal";
 import { Button } from "../../components/ui/button";
 import {
   Tooltip,
@@ -14,6 +16,13 @@ const CanvasView = () => {
   const [nameInput, setNameInput] = useState(projectName);
   const nameInputRef = useRef(null);
   const canvasRef = useRef(null);
+
+  // State for AddNodes modal
+  const [isAddNodesOpen, setIsAddNodesOpen] = useState(false);
+
+  // State for Additional Parameters modal
+  const [isAdditionalParamsOpen, setIsAdditionalParamsOpen] = useState(false);
+  const [currentEditingNode, setCurrentEditingNode] = useState(null);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -36,21 +45,81 @@ const CanvasView = () => {
     setNameInput(projectName);
     setIsEditingName(false);
   };
+
+  // Function to update node data
+  const updateNodeData = (nodeId, newData) => {
+    setNodes((prevNodes) =>
+      prevNodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...newData } }
+          : node
+      )
+    );
+  };
+
+  // Copy node function
+  const handleCopyNode = (nodeId, nodeData) => {
+    const sourceNode = nodes.find((n) => n.id === nodeId);
+    if (!sourceNode) return;
+
+    // Find existing copies to determine the next number
+    const baseName = nodeData.title || "ReAct Agent for LLMs";
+    const existingCopies = nodes.filter(
+      (node) =>
+        node.data.title &&
+        (node.data.title === baseName ||
+          node.data.title.match(
+            new RegExp(
+              `^${baseName.replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&"
+              )} \\((\\d+)\\)$`
+            )
+          ))
+    );
+
+    const copyNumber = existingCopies.length;
+    const newTitle = `${baseName} (${copyNumber})`;
+
+    // Create new node with copied data
+    const newNode = {
+      ...sourceNode,
+      id: `${nodeId}-copy-${Date.now()}`,
+      position: {
+        x: sourceNode.position.x + 50,
+        y: sourceNode.position.y + 50,
+      },
+      data: {
+        ...sourceNode.data,
+        title: newTitle,
+      },
+    };
+
+    setNodes((prevNodes) => [...prevNodes, newNode]);
+    console.log(`Node copied: ${newTitle}`);
+  };
+
+  // Delete node function
+  const handleDeleteNode = (nodeId) => {
+    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
+    console.log(`Node deleted: ${nodeId}`);
+  };
+
+  // Info node function
+  const handleInfoNode = (nodeId, nodeData) => {
+    console.log("Node Info:", {
+      id: nodeId,
+      title: nodeData.title || "ReAct Agent for LLMs",
+      maxIterations: nodeData.maxIterations || 0,
+      type: "ReActAgentNode",
+    });
+  };
+
   const navigate = useNavigate();
 
   // Local canvas data: nodes and edges passed down to Canvas
-  const [nodes, setNodes] = useState([
-    { id: "n1", position: { x: 0, y: 0 }, data: { label: "Start" } },
-    { id: "n2", position: { x: 0, y: 100 }, data: { label: "First" } },
-  ]);
-  const [edges, setEdges] = useState([
-    { id: "n1-n2", source: "n1", target: "n2" },
-  ]);
-
-  const handleAddNode = () => {
-    // This would typically add a new node to the canvas
-    console.log("Add node clicked");
-  };
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
 
   const _handleDeleteSelected = () => {
     // This would typically delete selected nodes/edges
@@ -113,6 +182,13 @@ const CanvasView = () => {
 
   const handleBackToPrevious = () => {
     navigate(-1);
+  };
+
+  const handleAddNode = (nodeData) => {
+    // Use the canvas ref to add the node
+    if (canvasRef.current && canvasRef.current.addNode) {
+      canvasRef.current.addNode(nodeData);
+    }
   };
 
   return (
@@ -251,36 +327,28 @@ const CanvasView = () => {
       <div className="flex-1 relative overflow-hidden">
         {/* Canvas Component */}
         <div className="w-full h-full">
-          <Canvas ref={canvasRef} nodes={nodes} edges={edges} />
+          <Canvas
+            ref={canvasRef}
+            nodes={nodes}
+            edges={edges}
+            onOpenAdditionalParams={(nodeId) => {
+              const node = nodes.find((n) => n.id === nodeId);
+              setCurrentEditingNode(node);
+              setIsAdditionalParamsOpen(true);
+            }}
+            onCopyNode={handleCopyNode}
+            onDeleteNode={handleDeleteNode}
+            onInfoNode={handleInfoNode}
+          />
         </div>
 
         {/* Floating Controls */}
         <div className="absolute top-4 left-4 z-10 flex flex-col space-y-2">
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={handleAddNode}
-            title="Add Node"
-            aria-label="Add node"
-            className="rounded-full w-10 h-10 p-0 shadow-2xl flex items-center justify-center transition-transform transition-shadow duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50 bg-gradient-to-br from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-2xl elevated-btn"
-          >
-            {/* simple plus icon (no outer circle) */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-current"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </Button>
+          <AddNodes
+            open={isAddNodesOpen}
+            onOpenChange={setIsAddNodesOpen}
+            onAddNode={handleAddNode}
+          />
         </div>
 
         {/* Floating Tools - Right Side
@@ -360,6 +428,17 @@ const CanvasView = () => {
           </Button>
         </div> */}
       </div>
+
+      {/* Additional Parameters Modal */}
+      <AdditionalParametersModal
+        isOpen={isAdditionalParamsOpen}
+        onClose={() => {
+          setIsAdditionalParamsOpen(false);
+          setCurrentEditingNode(null);
+        }}
+        nodeData={currentEditingNode}
+        onSave={updateNodeData}
+      />
     </div>
   );
 };
