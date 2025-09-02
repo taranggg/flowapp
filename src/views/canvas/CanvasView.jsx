@@ -13,6 +13,7 @@ const CanvasView = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(projectName);
   const nameInputRef = useRef(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -76,12 +77,24 @@ const CanvasView = () => {
   };
 
   const handleExport = () => {
-    // Build export payload. Replace this with real canvas export when available.
-    const payload = {
-      name: projectName,
-      exportedAt: new Date().toISOString(),
+    // Get current canvas data from the canvas component
+    const canvasData = canvasRef.current?.getCanvasData() || {
       nodes: [],
       edges: [],
+    };
+
+    // Build export payload with all relevant information
+    const payload = {
+      projectName: projectName,
+      exportedAt: new Date().toISOString(),
+      canvasData: {
+        nodes: canvasData.nodes,
+        edges: canvasData.edges,
+      },
+      metadata: {
+        nodeCount: canvasData.nodes.length,
+        edgeCount: canvasData.edges.length,
+      },
     };
 
     const json = JSON.stringify(payload, null, 2);
@@ -89,7 +102,9 @@ const CanvasView = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${projectName.replace(/\s+/g, "_").toLowerCase()}.json`;
+    a.download = `${projectName
+      .replace(/\s+/g, "_")
+      .toLowerCase()}_export.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -236,7 +251,7 @@ const CanvasView = () => {
       <div className="flex-1 relative overflow-hidden">
         {/* Canvas Component */}
         <div className="w-full h-full">
-          <Canvas nodes={nodes} edges={edges} />
+          <Canvas ref={canvasRef} nodes={nodes} edges={edges} />
         </div>
 
         {/* Floating Controls */}

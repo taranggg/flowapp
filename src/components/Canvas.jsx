@@ -1,4 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -8,7 +14,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
-function Canvas({ nodes: propNodes, edges: propEdges }) {
+const Canvas = forwardRef(({ nodes: propNodes, edges: propEdges }, ref) => {
   const [nodes, setNodes] = useState(propNodes ?? []);
   // Sync local state when propNodes changes
   useEffect(() => {
@@ -36,6 +42,14 @@ function Canvas({ nodes: propNodes, edges: propEdges }) {
     []
   );
 
+  // Expose nodes and edges to parent component
+  useImperativeHandle(ref, () => ({
+    getCanvasData: () => ({
+      nodes,
+      edges,
+    }),
+  }));
+
   return (
     <div style={{ width: "100%", height: "100%" }}>
       <ReactFlow
@@ -50,6 +64,8 @@ function Canvas({ nodes: propNodes, edges: propEdges }) {
       </ReactFlow>
     </div>
   );
-}
+});
+
+Canvas.displayName = "Canvas";
 
 export default Canvas;
