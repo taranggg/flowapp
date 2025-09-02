@@ -145,6 +145,7 @@ const Canvas = forwardRef(
         nodes,
         edges,
       }),
+      getCurrentNodes: () => nodes,
       addNode: (nodeData) => {
         const newNode = {
           id: `${nodeData.type}-${Date.now()}`,

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Bot } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ const nodeTypes = {
       name: "ReAct Agent",
       description:
         "Agent used to answer queries with chain of thoughts for self-guided task completion",
-      icon: "🤖",
+      icon: Bot,
       type: "ReActAgentNode",
       category: "Agents",
     },
@@ -74,7 +75,12 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
       >
         <div className="flex items-start gap-3">
           <div className="text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center">
-            {node.icon}
+            {React.isValidElement(node.icon)
+              ? node.icon
+              : React.createElement(node.icon, {
+                  className: "text-blue-600",
+                  size: 20,
+                })}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">

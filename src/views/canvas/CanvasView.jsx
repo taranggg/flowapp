@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Canvas from "../../components/Canvas";
 import AddNodes from "./AddNodes";
 import AdditionalParametersModal from "./AdditionalParametersModal";
+import NodeInfoModal from "./NodeInfoModal";
 import { Button } from "../../components/ui/button";
 import {
   Tooltip,
@@ -23,6 +24,10 @@ const CanvasView = () => {
   // State for Additional Parameters modal
   const [isAdditionalParamsOpen, setIsAdditionalParamsOpen] = useState(false);
   const [currentEditingNode, setCurrentEditingNode] = useState(null);
+
+  // State for Node Info modal
+  const [isNodeInfoOpen, setIsNodeInfoOpen] = useState(false);
+  const [currentInfoNode, setCurrentInfoNode] = useState(null);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -59,7 +64,10 @@ const CanvasView = () => {
 
   // Copy node function
   const handleCopyNode = (nodeId, nodeData) => {
-    const sourceNode = nodes.find((n) => n.id === nodeId);
+    // Get current nodes from Canvas to get updated positions
+    const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
+    const sourceNode = currentNodes.find((n) => n.id === nodeId);
+
     if (!sourceNode) return;
 
     // Find existing copies to determine the next number
@@ -107,12 +115,25 @@ const CanvasView = () => {
 
   // Info node function
   const handleInfoNode = (nodeId, nodeData) => {
-    console.log("Node Info:", {
+    // Get current nodes from Canvas to get updated data
+    const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
+    const currentNode = currentNodes.find((n) => n.id === nodeId);
+
+    const nodeInfo = {
+      nodeId: nodeId, // Store the nodeId separately
       id: nodeId,
       title: nodeData.title || "ReAct Agent for LLMs",
       maxIterations: nodeData.maxIterations || 0,
       type: "ReActAgentNode",
-    });
+      description: nodeData.description,
+      ...nodeData,
+      // Add current node data if available
+      ...(currentNode?.data || {}),
+    };
+
+    setCurrentInfoNode(nodeInfo);
+    setIsNodeInfoOpen(true);
+    console.log("Opening node info:", nodeInfo);
   };
 
   const navigate = useNavigate();
@@ -185,10 +206,18 @@ const CanvasView = () => {
   };
 
   const handleAddNode = (nodeData) => {
-    // Use the canvas ref to add the node
-    if (canvasRef.current && canvasRef.current.addNode) {
-      canvasRef.current.addNode(nodeData);
-    }
+    const newNode = {
+      id: `${nodeData.type}-${Date.now()}`,
+      type: nodeData.type,
+      position: { x: 100, y: 100 },
+      data: {
+        title: nodeData.name,
+        description: nodeData.description,
+        ...nodeData,
+      },
+    };
+    setNodes((prevNodes) => [...prevNodes, newNode]);
+    console.log("New node added:", newNode);
   };
 
   return (
@@ -438,6 +467,16 @@ const CanvasView = () => {
         }}
         nodeData={currentEditingNode}
         onSave={updateNodeData}
+      />
+
+      {/* Node Info Modal */}
+      <NodeInfoModal
+        isOpen={isNodeInfoOpen}
+        onClose={() => {
+          setIsNodeInfoOpen(false);
+          setCurrentInfoNode(null);
+        }}
+        nodeData={currentInfoNode}
       />
     </div>
   );

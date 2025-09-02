@@ -1,5 +1,6 @@
 import React from "react";
 import { Handle, Position } from "@xyflow/react";
+import { Bot } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 export default function ReActAgentNode({
@@ -20,7 +21,7 @@ export default function ReActAgentNode({
     >
       {/* Context Menu - appears on hover or when selected */}
       <div
-        className={`absolute -top-4 -right-4 z-10 transition-all duration-200 ${
+        className={`absolute -top-4 -right-15 z-10 transition-all duration-200 ${
           selected
             ? "opacity-100 scale-100"
             : "opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100"
@@ -90,7 +91,7 @@ export default function ReActAgentNode({
 
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4">
-        <div className="text-black text-2xl">🤖</div>
+        <Bot className="text-blue-600" size={24} />
         <h3 className="font-semibold text-gray-800 text-lg">
           {data?.title ?? "ReAct Agent for LLMs"}
         </h3>
@@ -135,11 +136,6 @@ export default function ReActAgentNode({
             onClick={onOpenAdditionalParams}
           >
             Additional Parameters
-            {data?.maxIterations > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {data.maxIterations}
-              </span>
-            )}
           </button>
         </div>
 
@@ -164,28 +160,28 @@ export default function ReActAgentNode({
         id="allowedTools"
         position={Position.Left}
         className="!w-4 !h-4 !bg-blue-500 !border-0"
-        style={{ top: 120 }}
+        style={{ top: 115 }}
       />
       <Handle
         type="target"
         id="languageModel"
         position={Position.Left}
         className="!w-4 !h-4 !bg-blue-500 !border-0"
-        style={{ top: 160 }}
+        style={{ top: 155 }}
       />
       <Handle
         type="target"
         id="inputModeration"
         position={Position.Left}
         className="!w-4 !h-4 !bg-blue-500 !border-0"
-        style={{ top: 200 }}
+        style={{ top: 195 }}
       />
       <Handle
         type="source"
         id="agentExecutor"
         position={Position.Right}
         className="!w-4 !h-4 !bg-blue-500 !border-0"
-        style={{ top: 360 }}
+        style={{ top: 355 }}
       />
     </div>
   );
