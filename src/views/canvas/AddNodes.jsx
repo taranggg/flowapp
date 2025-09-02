@@ -3,6 +3,7 @@ import { Bot } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -20,7 +21,7 @@ const nodeTypes = {
       description:
         "Agent used to answer queries with chain of thoughts for self-guided task completion",
       icon: Bot,
-      type: "AgentNode",
+      type: "ReActAgentNode",
       category: "Agents",
     },
   ],
@@ -169,9 +170,9 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
       >
         <DialogHeader>
           <DialogTitle>Add Nodes</DialogTitle>
-          <p className="text-sm text-muted-foreground">
+          <DialogDescription>
             Drag & drop or click to add nodes to your canvas
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden max-h-[70vh]">

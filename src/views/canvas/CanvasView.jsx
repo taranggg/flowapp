@@ -142,26 +142,6 @@ const CanvasView = () => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
-  const _handleDeleteSelected = () => {
-    // This would typically delete selected nodes/edges
-    console.log("Delete selected clicked");
-  };
-
-  const _handleZoomIn = () => {
-    // This would typically zoom in on the canvas
-    console.log("Zoom in clicked");
-  };
-
-  const _handleZoomOut = () => {
-    // This would typically zoom out on the canvas
-    console.log("Zoom out clicked");
-  };
-
-  const _handleFitView = () => {
-    // This would typically fit the view to show all nodes
-    console.log("Fit view clicked");
-  };
-
   const handleSave = () => {
     console.log("Save clicked");
   };

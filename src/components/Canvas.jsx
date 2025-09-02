@@ -11,6 +11,7 @@ import {
   applyEdgeChanges,
   addEdge,
   Background,
+  Controls,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import ReActAgentNode from "../views/canvas/ReActAgentNode";
@@ -289,6 +290,7 @@ const Canvas = forwardRef(
           fitView
         >
           <Background />
+          <Controls />
         </ReactFlow>
       </div>
     );

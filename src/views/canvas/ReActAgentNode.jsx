@@ -91,7 +91,14 @@ export default function ReActAgentNode({
 
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4">
-        <Bot className="text-blue-600" size={24} />
+        <Bot
+          className={`transition-colors duration-200 ${
+            selected
+              ? "text-blue-600"
+              : "text-gray-400 group-hover:text-blue-600"
+          }`}
+          size={24}
+        />
         <h3 className="font-semibold text-gray-800 text-lg">
           {data?.title ?? "ReAct Agent for LLMs"}
         </h3>
@@ -159,28 +166,36 @@ export default function ReActAgentNode({
         type="target"
         id="allowedTools"
         position={Position.Left}
-        className="!w-4 !h-4 !bg-blue-500 !border-0"
+        className={`!w-2 !h-2 !border-0 transition-colors duration-200 ${
+          selected ? "!bg-blue-500" : "!bg-gray-400"
+        }`}
         style={{ top: 115 }}
       />
       <Handle
         type="target"
         id="languageModel"
         position={Position.Left}
-        className="!w-4 !h-4 !bg-blue-500 !border-0"
+        className={`!w-2 !h-2 !border-0 transition-colors duration-200 ${
+          selected ? "!bg-blue-500" : "!bg-gray-400"
+        }`}
         style={{ top: 155 }}
       />
       <Handle
         type="target"
         id="inputModeration"
         position={Position.Left}
-        className="!w-4 !h-4 !bg-blue-500 !border-0"
+        className={`!w-2 !h-2 !border-0 transition-colors duration-200 ${
+          selected ? "!bg-blue-500" : "!bg-gray-400"
+        }`}
         style={{ top: 195 }}
       />
       <Handle
         type="source"
         id="agentExecutor"
         position={Position.Right}
-        className="!w-4 !h-4 !bg-blue-500 !border-0"
+        className={`!w-2 !h-2 !border-0 transition-colors duration-200 ${
+          selected ? "!bg-blue-500" : "!bg-gray-400"
+        }`}
         style={{ top: 355 }}
       />
     </div>
