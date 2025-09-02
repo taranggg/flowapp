@@ -104,13 +104,11 @@ const CanvasView = () => {
     };
 
     setNodes((prevNodes) => [...prevNodes, newNode]);
-    console.log(`Node copied: ${newTitle}`);
   };
 
   // Delete node function
   const handleDeleteNode = (nodeId) => {
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
-    console.log(`Node deleted: ${nodeId}`);
   };
 
   // Info node function
@@ -133,7 +131,6 @@ const CanvasView = () => {
 
     setCurrentInfoNode(nodeInfo);
     setIsNodeInfoOpen(true);
-    console.log("Opening node info:", nodeInfo);
   };
 
   const navigate = useNavigate();
@@ -197,7 +194,6 @@ const CanvasView = () => {
       },
     };
     setNodes((prevNodes) => [...prevNodes, newNode]);
-    console.log("New node added:", newNode);
   };
 
   return (

@@ -88,9 +88,6 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
               <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
                 {node.name}
               </h3>
-              <div className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                Click to add
-              </div>
             </div>
             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
               {node.description}
@@ -171,7 +168,7 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
         <DialogHeader>
           <DialogTitle>Add Nodes</DialogTitle>
           <DialogDescription>
-            Drag & drop or click to add nodes to your canvas
+            Click to add nodes to your canvas
           </DialogDescription>
         </DialogHeader>
 
