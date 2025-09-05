@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bot, Plus, Minus } from "lucide-react";
+import { Bot, Plus, Minus, Wrench } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
 } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Separator } from "../../components/ui/separator";
 
 const nodeTypes = {
   agents: [
@@ -38,12 +37,19 @@ const NodeCard = ({ node, isDragging, onDragStart, onDragEnd, onClick }) => (
   >
     <div className="flex items-start gap-3">
       <div className="text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center">
-        {React.isValidElement(node.icon)
-          ? node.icon
-          : React.createElement(node.icon, {
-              className: "text-blue-600",
-              size: 20,
-            })}
+        {(() => {
+          const iconClass =
+            node.type === "ToolNode" || node.category === "Tools"
+              ? "text-green-600"
+              : "text-blue-600";
+
+          return React.isValidElement(node.icon)
+            ? node.icon
+            : React.createElement(node.icon, {
+                className: iconClass,
+                size: 20,
+              });
+        })()}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
@@ -148,7 +154,7 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
             id: tool.toolId,
             name: tool.toolName,
             description: tool.toolDescription,
-            icon: Bot,
+            icon: Wrench,
             type: "ToolNode",
             category: "Tools",
           })) || []
@@ -259,15 +265,10 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
             />
           </div>
 
-          <Separator />
-
           {/* Node Lists */}
           <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
             {activeTab === "agents" && (
               <div>
-                <h3 className="text-base font-semibold mb-3 text-foreground">
-                  Agents
-                </h3>
                 <div className="grid gap-3">
                   {filterNodes(nodeTypes.agents).map((node) => (
                     <NodeCard
@@ -292,9 +293,6 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
             )}
             {activeTab === "tools" && (
               <div>
-                <h3 className="text-base font-semibold mb-3 text-foreground">
-                  Tools
-                </h3>
                 <div className="grid gap-3">
                   {filterNodes(tools).map((node) => (
                     <NodeCard
