@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Canvas from "../../components/Canvas";
+import { exportCanvasToJson } from "../../utils/exporter";
 import AddNodes from "./AddNodes";
 import AdditionalParametersModal from "./AdditionalParametersModal";
 import NodeInfoModal from "./NodeInfoModal";
@@ -19,6 +20,7 @@ const CanvasView = () => {
   const canvasRef = useRef(null);
 
   const [isAddNodesOpen, setIsAddNodesOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const [isAdditionalParamsOpen, setIsAdditionalParamsOpen] = useState(false);
   const [currentEditingNode, setCurrentEditingNode] = useState(null);
@@ -77,7 +79,7 @@ const CanvasView = () => {
     });
   };
 
-  const handleCopyNode = (nodeId, nodeData) => {
+  const handleCopyNode = (nodeId) => {
     const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
     const sourceNode = currentNodes.find((n) => n.id === nodeId);
     if (!sourceNode) return;
@@ -159,7 +161,7 @@ const CanvasView = () => {
   const navigate = useNavigate();
 
   const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+  const [edges, _setEdges] = useState([]);
 
   const handleSave = () => {};
 
@@ -168,31 +170,20 @@ const CanvasView = () => {
       nodes: [],
       edges: [],
     };
-    const payload = {
-      projectName: projectName,
-      exportedAt: new Date().toISOString(),
-      canvasData: {
-        nodes: canvasData.nodes,
-        edges: canvasData.edges,
-      },
-      metadata: {
-        nodeCount: canvasData.nodes.length,
-        edgeCount: canvasData.edges.length,
-      },
-    };
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      console.error("Export can only run in a browser environment.");
+      return;
+    }
 
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${projectName
-      .replace(/\s+/g, "_")
-      .toLowerCase()}_export.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    setIsExporting(true);
+    try {
+      exportCanvasToJson(projectName, canvasData);
+    } catch (err) {
+      console.error("Failed to export canvas:", err);
+      alert("Failed to export canvas. See console for details.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleBackToPrevious = () => {
@@ -319,6 +310,8 @@ const CanvasView = () => {
                 onClick={handleExport}
                 title="Export JSON"
                 aria-label="Export JSON"
+                disabled={isExporting}
+                aria-busy={isExporting}
                 className="group rounded-full w-9 h-9 p-0 flex items-center justify-center transition-all duration-200 bg-gray-100 text-gray-600 hover:bg-gray-700 hover:text-white shadow-sm hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-400"
               >
                 <svg
