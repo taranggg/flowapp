@@ -116,7 +116,7 @@ const SearchBox = ({ value, onChange, onClear }) => (
       placeholder="Search nodes"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="pl-10 border-2 border-primary/20 focus:border-primary transition-colors"
+      className="pl-10 border-2 border-primary/20 focus:border-primary focus-visible:ring-0 focus:outline-none transition-colors"
     />
     {value && (
       <button
