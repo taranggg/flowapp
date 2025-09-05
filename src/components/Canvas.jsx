@@ -15,6 +15,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import ReActAgentNode from "../views/canvas/ReActAgentNode";
+import ToolNode from "../views/canvas/ToolNode";
 
 // Define node types
 const createNodeTypes = (
@@ -25,6 +26,15 @@ const createNodeTypes = (
 ) => ({
   ReActAgentNode: (props) => (
     <ReActAgentNode
+      {...props}
+      onOpenAdditionalParams={() => onOpenAdditionalParams(props.id)}
+      onCopyNode={() => onCopyNode(props.id, props.data)}
+      onDeleteNode={() => onDeleteNode(props.id)}
+      onInfoNode={() => onInfoNode(props.id, props.data)}
+    />
+  ),
+  ToolNode: (props) => (
+    <ToolNode
       {...props}
       onOpenAdditionalParams={() => onOpenAdditionalParams(props.id)}
       onCopyNode={() => onCopyNode(props.id, props.data)}
@@ -290,7 +300,7 @@ const Canvas = forwardRef(
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           nodeTypes={nodeTypes}
-          fitView
+          defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
         >
           <Background />
           <Controls />

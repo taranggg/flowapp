@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bot } from "lucide-react";
+import ToolNode from "./ToolNode";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,6 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Separator } from "../../components/ui/separator";
 
-// Node types data - for now just ReAct Agent
 const nodeTypes = {
   agents: [
     {
@@ -30,14 +30,35 @@ const nodeTypes = {
 const AddNodes = ({ open, onOpenChange, onAddNode }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [draggedNode, setDraggedNode] = useState(null);
+  const [activeTab, setActiveTab] = useState("agents");
+  const [tools, setTools] = useState([]);
 
-  // Filter nodes based on search term
+  useEffect(() => {
+    // Simulate API call to fetch tools
+    import("../../lib/tools-meta.json")
+      .then((mod) => {
+        // mod is the JSON array
+        setTools(
+          mod.default?.map((tool) => ({
+            ...tool,
+            id: tool.toolId,
+            name: tool.toolName,
+            description: tool.toolDescription,
+            icon: Bot,
+            type: "ToolNode",
+            category: "Tools",
+          })) || []
+        );
+      })
+      .catch(() => setTools([]));
+  }, []);
+
   const filterNodes = (nodes) => {
     if (!searchTerm) return nodes;
     return nodes.filter(
       (node) =>
-        node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        node.description.toLowerCase().includes(searchTerm.toLowerCase())
+        node.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        node.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
@@ -53,7 +74,20 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
 
   const handleAddNodeClick = (node) => {
     if (onAddNode) {
-      onAddNode(node);
+      // If it's a tool node, map the fields to the expected data structure
+      if (node.type === "ToolNode") {
+        onAddNode({
+          ...node,
+          name: node.toolName || node.name,
+          description: node.toolDescription || node.description,
+          toolId: node.toolId,
+          toolName: node.toolName,
+          toolDescription: node.toolDescription,
+          additionalParameters: node.additionalParameters,
+        });
+      } else {
+        onAddNode(node);
+      }
       onOpenChange(false);
     }
   };
@@ -95,7 +129,6 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
           </div>
         </div>
 
-        {/* Drag indicator */}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <svg
             width="16"
@@ -173,7 +206,6 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden max-h-[70vh]">
-          {/* Search Input */}
           <div className="relative">
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
@@ -212,40 +244,62 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
             )}
           </div>
 
-          {/* Category Tabs - For now just showing Agents */}
+          {/* Category Tabs - Agents and Tools */}
           <div className="flex gap-2 p-1 bg-muted rounded-lg">
             <TabButton
               label="Agents"
-              isActive={true}
-              onClick={() => {}} // No-op for now
+              isActive={activeTab === "agents"}
+              onClick={() => setActiveTab("agents")}
             />
-            <div className="px-2 py-2 text-xs text-muted-foreground/50">
-              More coming soon...
-            </div>
+            <TabButton
+              label="Tools"
+              isActive={activeTab === "tools"}
+              onClick={() => setActiveTab("tools")}
+            />
           </div>
 
           <Separator />
 
           {/* Node Lists */}
           <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-            <div>
-              <h3 className="text-base font-semibold mb-3 text-foreground">
-                Agents
-              </h3>
-              <div className="grid gap-3">
-                {filterNodes(nodeTypes.agents).map((node) => (
-                  <NodeCard key={node.id} node={node} />
-                ))}
+            {activeTab === "agents" && (
+              <div>
+                <h3 className="text-base font-semibold mb-3 text-foreground">
+                  Agents
+                </h3>
+                <div className="grid gap-3">
+                  {filterNodes(nodeTypes.agents).map((node) => (
+                    <NodeCard key={node.id} node={node} />
+                  ))}
+                </div>
+                {searchTerm && filterNodes(nodeTypes.agents).length === 0 && (
+                  <div className="text-center py-6">
+                    <div className="text-3xl mb-2">🔍</div>
+                    <p className="text-muted-foreground text-sm">
+                      No nodes found matching "{searchTerm}"
+                    </p>
+                  </div>
+                )}
               </div>
-            </div>
-
-            {/* No results message */}
-            {searchTerm && filterNodes(nodeTypes.agents).length === 0 && (
-              <div className="text-center py-6">
-                <div className="text-3xl mb-2">🔍</div>
-                <p className="text-muted-foreground text-sm">
-                  No nodes found matching "{searchTerm}"
-                </p>
+            )}
+            {activeTab === "tools" && (
+              <div>
+                <h3 className="text-base font-semibold mb-3 text-foreground">
+                  Tools
+                </h3>
+                <div className="grid gap-3">
+                  {filterNodes(tools).map((node) => (
+                    <NodeCard key={node.id} node={node} />
+                  ))}
+                </div>
+                {searchTerm && filterNodes(tools).length === 0 && (
+                  <div className="text-center py-6">
+                    <div className="text-3xl mb-2">🔍</div>
+                    <p className="text-muted-foreground text-sm">
+                      No tools found matching "{searchTerm}"
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

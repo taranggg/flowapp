@@ -443,6 +443,8 @@ const CanvasView = () => {
         }}
         nodeData={currentEditingNode}
         onSave={updateNodeData}
+        schema={currentEditingNode?.data?.toolParameters}
+        formData={currentEditingNode?.data?.additionalParameters}
       />
 
       {/* Node Info Modal */}

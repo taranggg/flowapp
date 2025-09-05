@@ -1,0 +1,62 @@
+[
+  {
+    "toolId": "web-search-tool",
+    "toolName": "Web Search Tool",
+    "toolDescription": "Tool to search the web for information.",
+    "toolParameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "maxResults": {
+          "title": "Max Results",
+          "type": "integer",
+          "default": 10
+        }
+      },
+      "required": ["query"]
+    }
+  },
+  {
+    "toolId": "calculator-tool",
+    "toolName": "Calculator Tool",
+    "toolDescription": "Tool to perform calculations.",
+    "toolParameters": {
+      "type": "object",
+      "properties": {
+        "a": {
+          "title": "A",
+          "type": "integer"
+        },
+        "b": {
+          "title": "B",
+          "type": "integer"
+        }
+      },
+      "required": ["a", "b"]
+    }
+  },
+  {
+    "toolId": "weather-tool",
+    "toolName": "Weather Tool",
+    "toolDescription": "Tool to get current weather information.",
+    "toolParameters": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "units": {
+          "title": "Units",
+          "type": "string",
+          "enum": ["metric", "imperial"],
+          "default": "metric"
+        }
+      },
+      "required": ["location"]
+    }
+  }
+]
