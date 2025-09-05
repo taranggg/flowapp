@@ -7,6 +7,15 @@ export default function NodeInfoModal({ isOpen, onClose, nodeData }) {
   // For ToolNode, always use nodeData.data for latest values
   const toolData = isTool && nodeData.data ? nodeData.data : nodeData;
 
+  console.log(
+    "[DEBUG: INFO MODAL DATA] isTool:",
+    isTool,
+    "nodeData:",
+    nodeData,
+    "toolData:",
+    toolData
+  );
+
   return (
     <div
       className="fixed inset-0 bg-stone-950/80 flex items-center justify-center z-50"

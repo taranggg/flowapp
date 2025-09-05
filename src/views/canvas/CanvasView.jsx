@@ -18,14 +18,11 @@ const CanvasView = () => {
   const nameInputRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // State for AddNodes modal
   const [isAddNodesOpen, setIsAddNodesOpen] = useState(false);
 
-  // State for Additional Parameters modal
   const [isAdditionalParamsOpen, setIsAdditionalParamsOpen] = useState(false);
   const [currentEditingNode, setCurrentEditingNode] = useState(null);
 
-  // State for Node Info modal
   const [isNodeInfoOpen, setIsNodeInfoOpen] = useState(false);
   const [currentInfoNode, setCurrentInfoNode] = useState(null);
 
@@ -51,9 +48,7 @@ const CanvasView = () => {
     setIsEditingName(false);
   };
 
-  // Function to update node data
   const updateNodeData = (nodeId, newData) => {
-    // If this is a ToolNode and newData is user input, store as toolParameterValues
     let patchedData = { ...newData };
     const node = nodes.find((n) => n.id === nodeId);
     if (
@@ -62,18 +57,11 @@ const CanvasView = () => {
       node.data.toolName &&
       (newData.toolParameters || newData.additionalParameters)
     ) {
-      // User input from modal is in toolParameters or additionalParameters, store as toolParameterValues
       const values = newData.toolParameters || newData.additionalParameters;
       patchedData = { ...newData, toolParameterValues: values };
       delete patchedData.toolParameters;
       delete patchedData.additionalParameters;
     }
-    console.log(
-      "[updateNodeData] nodeId:",
-      nodeId,
-      "patchedData:",
-      patchedData
-    );
     setNodes((prevNodes) => {
       const updated = prevNodes.map((node) => {
         if (node.id === nodeId) {
@@ -81,24 +69,19 @@ const CanvasView = () => {
             ...node,
             data: { ...node.data, ...patchedData },
           };
-          console.log("[updateNodeData] Updated node:", updatedNode);
           return updatedNode;
         }
         return node;
       });
-      console.log("[updateNodeData] Updated nodes array:", updated);
       return updated;
     });
   };
 
-  // Copy node function
   const handleCopyNode = (nodeId, nodeData) => {
-    // Get current nodes from Canvas to get updated positions
     const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
     const sourceNode = currentNodes.find((n) => n.id === nodeId);
     if (!sourceNode) return;
 
-    // Determine if this is a tool node (by toolName)
     const isTool = !!sourceNode.data.toolName;
     const baseName = isTool
       ? sourceNode.data.toolName || "Tool"
@@ -140,64 +123,53 @@ const CanvasView = () => {
     setNodes((prevNodes) => [...prevNodes, newNode]);
   };
 
-  // Delete node function
   const handleDeleteNode = (nodeId) => {
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
   };
 
-  // Info node function
   const handleInfoNode = (nodeId, nodeData) => {
-    // Get current nodes from Canvas to get updated data
-    const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
-    const currentNode = currentNodes.find((n) => n.id === nodeId);
-    console.log(
-      "[handleInfoNode] nodeId:",
-      nodeId,
-      "currentNode:",
-      currentNode
-    );
+    const currentNode = nodes.find((n) => n.id === nodeId);
     const isTool = !!currentNode?.data?.toolName;
+
     let nodeInfo;
     if (isTool) {
-      // Pass the whole node object for ToolNode, so NodeInfoModal can access .data
       nodeInfo = currentNode;
-      console.log("[handleInfoNode] ToolNode nodeInfo:", nodeInfo);
     } else {
       nodeInfo = {
-        nodeId: nodeId, // Store the nodeId separately
+        nodeId: nodeId,
         id: nodeId,
         title: nodeData.title || "ReAct Agent for LLMs",
         maxIterations: nodeData.maxIterations || 0,
         type: "ReActAgentNode",
         description: nodeData.description,
         ...nodeData,
-        // Add current node data if available
         ...(currentNode?.data || {}),
       };
-      console.log("[handleInfoNode] Agent nodeInfo:", nodeInfo);
     }
     setCurrentInfoNode(nodeInfo);
     setIsNodeInfoOpen(true);
   };
 
+  const handleOpenAdditionalParams = (nodeId) => {
+    setIsNodeInfoOpen(false);
+    setCurrentInfoNode(null);
+    const node = nodes.find((n) => n.id === nodeId);
+    setCurrentEditingNode(node);
+    setIsAdditionalParamsOpen(true);
+  };
+
   const navigate = useNavigate();
 
-  // Local canvas data: nodes and edges passed down to Canvas
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
 
-  const handleSave = () => {
-    console.log("Save clicked");
-  };
+  const handleSave = () => {};
 
   const handleExport = () => {
-    // Get current canvas data from the canvas component
     const canvasData = canvasRef.current?.getCanvasData() || {
       nodes: [],
       edges: [],
     };
-
-    // Build export payload with all relevant information
     const payload = {
       projectName: projectName,
       exportedAt: new Date().toISOString(),
@@ -245,7 +217,6 @@ const CanvasView = () => {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-background">
-      {/* Header */}
       <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 shadow-sm">
         <div className="flex items-center space-x-4">
           <Tooltip>
@@ -374,27 +345,18 @@ const CanvasView = () => {
           </Tooltip>
         </div>
       </header>
-
-      {/* Canvas Container */}
       <div className="flex-1 relative overflow-hidden">
-        {/* Canvas Component */}
         <div className="w-full h-full">
           <Canvas
             ref={canvasRef}
             nodes={nodes}
             edges={edges}
-            onOpenAdditionalParams={(nodeId) => {
-              const node = nodes.find((n) => n.id === nodeId);
-              setCurrentEditingNode(node);
-              setIsAdditionalParamsOpen(true);
-            }}
+            onOpenAdditionalParams={handleOpenAdditionalParams}
             onCopyNode={handleCopyNode}
             onDeleteNode={handleDeleteNode}
             onInfoNode={handleInfoNode}
           />
         </div>
-
-        {/* Floating Controls */}
         <div className="absolute top-4 left-4 z-10 flex flex-col space-y-2">
           <AddNodes
             open={isAddNodesOpen}
@@ -402,86 +364,7 @@ const CanvasView = () => {
             onAddNode={handleAddNode}
           />
         </div>
-
-        {/* Floating Tools - Right Side
-        <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
-          <Button
-            variant="secondary"
-            size="icon"
-            className="shadow-lg"
-            title="Zoom In"
-            onClick={handleZoomIn}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-              <line x1="11" y1="8" x2="11" y2="14" />
-              <line x1="8" y1="11" x2="14" y2="11" />
-            </svg>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="icon"
-            className="shadow-lg"
-            title="Zoom Out"
-            onClick={handleZoomOut}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-              <line x1="8" y1="11" x2="14" y2="11" />
-            </svg>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="icon"
-            className="shadow-lg"
-            title="Fit View"
-            onClick={handleFitView}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 3H5a2 2 0 0 0-2 2v3" />
-              <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
-              <path d="M3 16v3a2 2 0 0 0 2 2h3" />
-              <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
-            </svg>
-          </Button>
-        </div> */}
       </div>
-
-      {/* Additional Parameters Modal */}
       <AdditionalParametersModal
         isOpen={isAdditionalParamsOpen}
         onClose={() => {
@@ -493,8 +376,6 @@ const CanvasView = () => {
         schema={currentEditingNode?.data?.toolParameters}
         formData={currentEditingNode?.data?.additionalParameters}
       />
-
-      {/* Node Info Modal */}
       <NodeInfoModal
         isOpen={isNodeInfoOpen}
         onClose={() => {
