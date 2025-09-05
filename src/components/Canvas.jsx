@@ -1,4 +1,10 @@
-import { useState, useCallback, useEffect, useImperativeHandle, forwardRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -77,7 +83,6 @@ const DragOverlay = () => (
   </div>
 );
 
-// Define node types
 const createNodeTypes = (
   onOpenAdditionalParams,
   onCopyNode,
@@ -180,29 +185,51 @@ const Canvas = forwardRef(
       []
     );
     const onConnect = useCallback(
-      (params) =>
+      (params) => {
+        if (!params) return;
+        const { source, target, targetHandle } = params;
+
+        const sourceNode = nodes.find((n) => n.id === source);
+        const targetNode = nodes.find((n) => n.id === target);
+
+        if (sourceNode?.type === "ToolNode") {
+          if (
+            targetNode?.type === "ReActAgentNode" &&
+            targetHandle === "allowedTools"
+          ) {
+            setEdges((edgesSnapshot) =>
+              addEdge({ ...params, animated: true }, edgesSnapshot)
+            );
+          } else {
+            setNotification({
+              message:
+                "Tool outputs can only be connected to ReAct Agent Allowed Tools input.",
+              type: "error",
+            });
+            setTimeout(() => setNotification(null), 3000);
+          }
+          return;
+        }
+
         setEdges((edgesSnapshot) =>
           addEdge({ ...params, animated: true }, edgesSnapshot)
-        ),
-      []
+        );
+      },
+      [nodes, setEdges, setNotification]
     );
 
-    // Handle drag over
     const onDragOver = useCallback((event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
       setIsDragOver(true);
     }, []);
 
-    // Handle drag leave
     const onDragLeave = useCallback((event) => {
-      // Only set dragOver to false if we're leaving the canvas entirely
       if (!event.currentTarget.contains(event.relatedTarget)) {
         setIsDragOver(false);
       }
     }, []);
 
-    // Handle drop
     const onDrop = useCallback((event) => {
       event.preventDefault();
       setIsDragOver(false);
@@ -211,16 +238,14 @@ const Canvas = forwardRef(
         const data = event.dataTransfer.getData("application/json");
         const nodeData = JSON.parse(data);
 
-        // Get the position where the node was dropped
         const rect = event.currentTarget.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
-        // Create a new node
         const newNode = {
           id: `${nodeData.type}-${Date.now()}`,
           type: nodeData.type,
-          position: { x: x - 140, y: y - 70 }, // Center the node on cursor
+          position: { x: x - 140, y: y - 70 },
           data: {
             title: nodeData.name,
             description: nodeData.description,
@@ -228,16 +253,13 @@ const Canvas = forwardRef(
           },
         };
 
-        // Add the new node to the canvas
         setNodes((nds) => [...nds, newNode]);
 
-        // Show success notification
         setNotification({
           message: `${nodeData.name} added successfully!`,
           type: "success",
         });
 
-        // Clear notification after 3 seconds
         setTimeout(() => setNotification(null), 3000);
       } catch (error) {
         console.error("Error adding node:", error);

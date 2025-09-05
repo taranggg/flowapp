@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bot } from "lucide-react";
+import { Bot, Plus, Minus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -32,23 +32,38 @@ const NodeCard = ({ node, isDragging, onDragStart, onDragEnd, onClick }) => (
     onDragStart={(e) => onDragStart(e, node)}
     onDragEnd={onDragEnd}
     onClick={() => onClick(node)}
-    className={`group relative p-4 border border-border rounded-lg cursor-grab active:cursor-grabbing hover:cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50 ${isDragging ? "opacity-50" : ""} bg-card hover:bg-accent/50 select-none`}
+    className={`group relative p-4 border border-border rounded-lg cursor-grab active:cursor-grabbing hover:cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/50 ${
+      isDragging ? "opacity-50" : ""
+    } bg-card hover:bg-accent/50 select-none`}
   >
     <div className="flex items-start gap-3">
       <div className="text-2xl flex-shrink-0 w-8 h-8 flex items-center justify-center">
         {React.isValidElement(node.icon)
           ? node.icon
-          : React.createElement(node.icon, { className: "text-blue-600", size: 20 })}
+          : React.createElement(node.icon, {
+              className: "text-blue-600",
+              size: 20,
+            })}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">{node.name}</h3>
+          <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+            {node.name}
+          </h3>
         </div>
-        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{node.description}</p>
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+          {node.description}
+        </p>
       </div>
     </div>
     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-muted-foreground">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        className="text-muted-foreground"
+      >
         <path
           d="M8 6h.01M8 10h.01M8 14h.01M8 18h.01M12 6h.01M12 10h.01M12 14h.01M12 18h.01M16 6h.01M16 10h.01M16 14h.01M16 18h.01"
           stroke="currentColor"
@@ -63,8 +78,14 @@ const NodeCard = ({ node, isDragging, onDragStart, onDragEnd, onClick }) => (
 
 const TabButton = ({ label, isActive, onClick }) => (
   <button
+    role="tab"
+    aria-pressed={isActive}
     onClick={onClick}
-    className={`${isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"} px-4 py-2 text-sm font-medium rounded-md transition-all duration-200`}
+    className={`text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-300 px-4 py-1.5 rounded-full ${
+      isActive
+        ? "bg-rose-500 text-white shadow-[0_6px_18px_rgba(203,50,71,0.12)]"
+        : "text-muted-foreground hover:text-foreground hover:bg-white/60"
+    }`}
   >
     {label}
   </button>
@@ -72,14 +93,38 @@ const TabButton = ({ label, isActive, onClick }) => (
 
 const SearchBox = ({ value, onChange, onClear }) => (
   <div className="relative">
-    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <svg
+      className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
     </svg>
-    <Input placeholder="Search nodes" value={value} onChange={(e) => onChange(e.target.value)} className="pl-10 border-2 border-primary/20 focus:border-primary transition-colors" />
+    <Input
+      placeholder="Search nodes"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="pl-10 border-2 border-primary/20 focus:border-primary transition-colors"
+    />
     {value && (
-      <button onClick={onClear} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground">
+      <button
+        onClick={onClear}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+      >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M18 6L6 18M6 6l12 12"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </button>
     )}
@@ -157,25 +202,28 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
         <Button
           variant="secondary"
           size="icon"
-          title="Add Node"
-          aria-label="Add node"
+          title={open ? "Close" : "Add Node"}
+          aria-label={open ? "Close add nodes" : "Add node"}
           className="rounded-full w-10 h-10 p-0 shadow-2xl flex items-center justify-center transition-transform transition-shadow duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-indigo-400/50 bg-gradient-to-br from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 hover:shadow-2xl elevated-btn"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-current"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <span className="relative inline-block w-[18px] h-[18px]">
+            <Plus
+              size={18}
+              className={`absolute inset-0 transition-all duration-200 ${
+                open
+                  ? "opacity-0 scale-90 rotate-90"
+                  : "opacity-100 scale-100 rotate-0"
+              }`}
+            />
+            <Minus
+              size={18}
+              className={`absolute inset-0 transition-all duration-200 ${
+                open
+                  ? "opacity-100 scale-100 rotate-0"
+                  : "opacity-0 scale-90 -rotate-90"
+              }`}
+            />
+          </span>
         </Button>
       </DialogTrigger>
 
@@ -191,10 +239,14 @@ const AddNodes = ({ open, onOpenChange, onAddNode }) => {
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden max-h-[70vh]">
-          <SearchBox value={searchTerm} onChange={setSearchTerm} onClear={() => setSearchTerm("")} />
+          <SearchBox
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onClear={() => setSearchTerm("")}
+          />
 
           {/* Category Tabs - Agents and Tools */}
-          <div className="flex gap-2 p-1 bg-muted rounded-lg">
+          <div className="flex gap-3 p-1 bg-[#f6f3ee] rounded-full items-center px-2">
             <TabButton
               label="Agents"
               isActive={activeTab === "agents"}
