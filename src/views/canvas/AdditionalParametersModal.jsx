@@ -1,12 +1,9 @@
-// src/views/canvas/AdditionalParametersModal.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
 
-/** ---------- Tailwind-styled widgets (text, number, select) ---------- */
-const baseInputCls =
-  "w-full h-11 px-3 border rounded-lg bg-white text-gray-900 placeholder-gray-400 " +
-  "focus:outline-none focus:ring-2 focus:ring-blue-500";
+const inputBase =
+  "w-full h-11 px-3 border rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
 function TextWidget(props) {
   const {
@@ -27,7 +24,7 @@ function TextWidget(props) {
     <input
       id={id}
       type="text"
-      className={baseInputCls}
+      className={inputBase}
       value={value ?? ""}
       required={required}
       disabled={disabled}
@@ -63,7 +60,7 @@ function NumberWidget(props) {
     <input
       id={id}
       type="number"
-      className={baseInputCls}
+      className={inputBase}
       value={value ?? ""}
       required={required}
       disabled={disabled}
@@ -100,7 +97,7 @@ function SelectWidget(props) {
   return (
     <select
       id={id}
-      className={baseInputCls}
+      className={inputBase}
       value={value ?? ""}
       required={required}
       disabled={disabled || readonly}
@@ -133,7 +130,6 @@ const widgets = {
   IntegerWidget: NumberWidget,
 };
 
-/** ---------- Label-above-input FieldTemplate ---------- */
 function CustomFieldTemplate(props) {
   const {
     id,
@@ -171,18 +167,40 @@ function CustomFieldTemplate(props) {
   );
 }
 
-/** ---------- Helper: accept a tool or a raw schema, return just toolParameters ---------- */
 function resolveToolParametersSchema(schemaOrTool) {
   if (!schemaOrTool) return { type: "object", properties: {} };
-  // If the caller passed the whole tool object, pick toolParameters.
   if (schemaOrTool.toolParameters) return schemaOrTool.toolParameters;
-  // Otherwise assume they passed a JSON Schema object already.
   return schemaOrTool;
 }
 
-/** ---------- Component ---------- */
-// Removed duplicate import of React and hooks
-// ...existing code...
+const ModalCard = ({ children }) => (
+  <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-xl">{children}</div>
+);
+
+const Actions = ({ onCancel, onSave, saveClass, isSubmit }) => (
+  <div className="flex justify-end gap-2 mt-6">
+    <button
+      type="button"
+      onClick={onCancel}
+      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+    >
+      Cancel
+    </button>
+    <button type={isSubmit ? "submit" : "button"} onClick={onSave} className={saveClass}>
+      Save
+    </button>
+  </div>
+);
+
+const FallbackNumberField = ({ id, label, value, onChange }) => (
+  <div className="mb-5" style={{ minHeight: 60 }}>
+    <label htmlFor={id} className="block text-base font-semibold text-gray-900 mb-1">
+      {label}
+    </label>
+    <input id={id} type="number" min="0" value={value} onChange={onChange} className={inputBase} />
+  </div>
+);
+
 export default function AdditionalParametersModal({
   isOpen,
   onClose,
@@ -191,18 +209,9 @@ export default function AdditionalParametersModal({
   schema, // pass either selectedTool.toolParameters OR the whole tool object
   uiSchema,
 }) {
-  // Always use the latest from nodeData.data.toolParameterValues for ToolNode
-  const currentFormData = useMemo(
-    () =>
-      nodeData && nodeData.data && nodeData.data.toolParameterValues
-        ? nodeData.data.toolParameterValues
-        : {},
-    [nodeData]
-  );
+  const currentFormData = useMemo(() => nodeData?.data?.toolParameterValues ?? {}, [nodeData]);
   const [dynamicFormData, setDynamicFormData] = useState(currentFormData);
-  const [maxIterations, setMaxIterations] = useState(
-    (nodeData && nodeData.data && nodeData.data.maxIterations) || 0
-  );
+  const [maxIterations, setMaxIterations] = useState(nodeData?.data?.maxIterations || 0);
 
   useEffect(() => {
     setDynamicFormData(currentFormData);
@@ -214,10 +223,8 @@ export default function AdditionalParametersModal({
     }
   }, [nodeData]);
 
-  // Save toolParameterValues under node.data.toolParameterValues
   const handleDynamicSave = ({ formData }) => {
-    if (onSave && nodeData)
-      onSave(nodeData.id, { toolParameterValues: formData });
+    if (onSave && nodeData) onSave(nodeData.id, { toolParameterValues: formData });
     onClose();
   };
 
@@ -248,19 +255,13 @@ export default function AdditionalParametersModal({
     effectiveSchema.properties &&
     Object.keys(effectiveSchema.properties).length > 0;
 
-  const isTool = !!(
-    nodeData &&
-    nodeData.data &&
-    (nodeData.data.toolName ||
-      nodeData.data.toolId ||
-      nodeData.data.toolParameters)
-  );
+  const isTool = !!(nodeData?.data && (nodeData.data.toolName || nodeData.data.toolId || nodeData.data.toolParameters));
   const saveBtnClass = isTool
     ? "px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
     : "px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600";
   return (
     <div className="fixed inset-0 bg-stone-950/80 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-xl">
+      <ModalCard>
         {hasSchemaFields ? (
           <Form
             schema={effectiveSchema}
@@ -273,57 +274,15 @@ export default function AdditionalParametersModal({
             onSubmit={handleDynamicSave}
             showErrorList={false}
           >
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button type="submit" className={saveBtnClass}>
-                Save
-              </button>
-            </div>
+            <Actions onCancel={onClose} saveClass={saveBtnClass} isSubmit />
           </Form>
         ) : (
-          // Minimal fallback if no schema passed
           <div>
-            <div className="mb-5" style={{ minHeight: 60 }}>
-              <label
-                htmlFor="maxIterations"
-                className="block text-base font-semibold text-gray-900 mb-1"
-              >
-                Max Iterations
-              </label>
-              <input
-                id="maxIterations"
-                type="number"
-                min="0"
-                value={maxIterations}
-                onChange={handleFallbackChange}
-                className={baseInputCls}
-              />
-            </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleFallbackSave}
-                className={saveBtnClass}
-              >
-                Save
-              </button>
-            </div>
+            <FallbackNumberField id="maxIterations" label="Max Iterations" value={maxIterations} onChange={handleFallbackChange} />
+            <Actions onCancel={onClose} onSave={handleFallbackSave} saveClass={saveBtnClass} />
           </div>
         )}
-      </div>
+      </ModalCard>
     </div>
   );
 }

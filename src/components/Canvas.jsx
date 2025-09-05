@@ -1,10 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  forwardRef,
-} from "react";
+import { useState, useCallback, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
   ReactFlow,
   applyNodeChanges,
@@ -16,6 +10,72 @@ import {
 import "@xyflow/react/dist/style.css";
 import ReActAgentNode from "../views/canvas/ReActAgentNode";
 import ToolNode from "../views/canvas/ToolNode";
+
+const Notification = ({ notification }) => {
+  if (!notification) return null;
+  const isSuccess = notification.type === "success";
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "20px",
+        right: "20px",
+        backgroundColor: isSuccess ? "#10b981" : "#ef4444",
+        color: "white",
+        padding: "12px 20px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        zIndex: 1000,
+        fontSize: "14px",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+      }}
+    >
+      <span>{isSuccess ? "✅" : "❌"}</span>
+      {notification.message}
+    </div>
+  );
+};
+
+const DragOverlay = () => (
+  <div
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(59, 130, 246, 0.1)",
+      border: "3px dashed #3b82f6",
+      borderRadius: "12px",
+      zIndex: 999,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      pointerEvents: "none",
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: "white",
+        padding: "20px 30px",
+        borderRadius: "12px",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        border: "2px solid #3b82f6",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+      }}
+    >
+      <div style={{ fontSize: "24px" }}>📋</div>
+      <span style={{ fontSize: "18px", fontWeight: 600, color: "#1f2937" }}>
+        Drop here to add node
+      </span>
+    </div>
+  </div>
+);
 
 // Define node types
 const createNodeTypes = (
@@ -60,26 +120,20 @@ const Canvas = forwardRef(
     const [isDragOver, setIsDragOver] = useState(false);
     const [notification, setNotification] = useState(null);
 
-    // Create nodeTypes with callbacks
     const nodeTypes = createNodeTypes(
       onOpenAdditionalParams,
       onCopyNode,
       onDeleteNode,
       onInfoNode
     );
-    // Sync local state when propNodes changes, preserving existing positions and data
     useEffect(() => {
       if (propNodes) {
         setNodes((currentNodes) => {
-          // If propNodes has more nodes than current (new node added)
           if (propNodes.length > currentNodes.length) {
-            // Create a map of current nodes by ID
             const currentNodesMap = new Map();
             currentNodes.forEach((node) => {
               currentNodesMap.set(node.id, node);
             });
-
-            // Update propNodes with current state for existing nodes
             const updatedNodes = propNodes.map((node) => {
               const currentNode = currentNodesMap.get(node.id);
               return currentNode
@@ -90,16 +144,12 @@ const Canvas = forwardRef(
                   }
                 : node;
             });
-
             return updatedNodes;
           }
-
-          // For other cases (like deletion), use propNodes as is but preserve positions
           const currentNodesMap = new Map();
           currentNodes.forEach((node) => {
             currentNodesMap.set(node.id, node);
           });
-
           return propNodes.map((node) => {
             const currentNode = currentNodesMap.get(node.id);
             return currentNode
@@ -115,7 +165,6 @@ const Canvas = forwardRef(
     }, [propNodes]);
 
     const [edges, setEdges] = useState(propEdges ?? []);
-    // Sync local state when propEdges changes
     useEffect(() => {
       if (propEdges) setEdges(propEdges);
     }, [propEdges]);
@@ -195,7 +244,6 @@ const Canvas = forwardRef(
       }
     }, []);
 
-    // Expose nodes and edges to parent component
     useImperativeHandle(ref, () => ({
       getCanvasData: () => ({
         nodes,
@@ -219,76 +267,8 @@ const Canvas = forwardRef(
 
     return (
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
-        {/* Success Notification */}
-        {notification && (
-          <div
-            style={{
-              position: "absolute",
-              top: "20px",
-              right: "20px",
-              backgroundColor:
-                notification.type === "success" ? "#10b981" : "#ef4444",
-              color: "white",
-              padding: "12px 20px",
-              borderRadius: "8px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              zIndex: 1000,
-              fontSize: "14px",
-              fontWeight: "500",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <span>{notification.type === "success" ? "✅" : "❌"}</span>
-            {notification.message}
-          </div>
-        )}
-
-        {/* Drag Over Overlay */}
-        {isDragOver && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "rgba(59, 130, 246, 0.1)",
-              border: "3px dashed #3b82f6",
-              borderRadius: "12px",
-              zIndex: 999,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              pointerEvents: "none",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "white",
-                padding: "20px 30px",
-                borderRadius: "12px",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                border: "2px solid #3b82f6",
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              <div style={{ fontSize: "24px" }}>📋</div>
-              <span
-                style={{
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  color: "#1f2937",
-                }}
-              >
-                Drop here to add node
-              </span>
-            </div>
-          </div>
-        )}
+        <Notification notification={notification} />
+        {isDragOver && <DragOverlay />}
 
         <ReactFlow
           nodes={nodes}

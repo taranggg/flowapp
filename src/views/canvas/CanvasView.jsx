@@ -88,7 +88,6 @@ const CanvasView = () => {
       : sourceNode.data.title || "ReAct Agent for LLMs";
     const nameField = isTool ? "toolName" : "title";
 
-    // Find existing copies to determine the next number
     const existingCopies = currentNodes.filter((node) => {
       const val = node.data[nameField];
       return (
@@ -107,7 +106,6 @@ const CanvasView = () => {
     const copyNumber = existingCopies.length;
     const newName = `${baseName} (${copyNumber})`;
 
-    // Create new node with copied data
     const newNode = {
       ...sourceNode,
       id: `${nodeId}-copy-${Date.now()}`,
