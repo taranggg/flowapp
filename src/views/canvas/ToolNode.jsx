@@ -1,6 +1,6 @@
 import React from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Bot } from "lucide-react";
+import { Wrench } from "lucide-react";
 import "@xyflow/react/dist/style.css";
 
 export default function ToolNode({
@@ -15,8 +15,8 @@ export default function ToolNode({
     <div
       className={`relative w-[360px] bg-white rounded-xl border transition-all duration-200 font-sans group ${
         selected
-          ? "border-blue-400 shadow-lg shadow-blue-100/50"
-          : "border-gray-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-100/30 focus-within:border-blue-300 focus-within:shadow-lg focus-within:shadow-blue-100/30"
+          ? "border-green-400 shadow-lg shadow-green-100/50"
+          : "border-gray-200 hover:border-green-300 hover:shadow-lg hover:shadow-green-100/30 focus-within:border-green-300 focus-within:shadow-lg focus-within:shadow-green-100/30"
       }`}
     >
       {/* Context Menu */}
@@ -68,7 +68,7 @@ export default function ToolNode({
           </button>
           <button
             onClick={() => onInfoNode && onInfoNode()}
-            className="p-2 hover:bg-blue-50 hover:text-blue-600 rounded-md transition-colors"
+            className="p-2 hover:bg-green-50 hover:text-green-600 rounded-md transition-colors"
             title="Node Info"
           >
             <svg
@@ -91,11 +91,11 @@ export default function ToolNode({
 
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4">
-        <Bot
+        <Wrench
           className={`transition-colors duration-200 ${
             selected
-              ? "text-blue-600"
-              : "text-gray-400 group-hover:text-blue-600"
+              ? "text-green-600"
+              : "text-gray-400 group-hover:text-green-600"
           }`}
           size={24}
         />
@@ -125,7 +125,7 @@ export default function ToolNode({
         <div className="flex justify-center mb-6">
           <button
             type="button"
-            className={`text-blue-500 text-sm border border-blue-300 rounded-full px-6 py-2 hover:bg-blue-50 transition-colors relative`}
+            className={`text-green-600 text-sm border border-green-300 rounded-full px-6 py-2 hover:bg-green-50 transition-colors relative`}
             onClick={onOpenAdditionalParams}
           >
             Additional Parameters
@@ -151,7 +151,7 @@ export default function ToolNode({
         id="toolOutput"
         position={Position.Right}
         className={`!w-2 !h-2 !border-0 transition-colors duration-200 ${
-          selected ? "!bg-blue-500" : "!bg-gray-400"
+          selected ? "!bg-green-500" : "!bg-gray-400"
         }`}
         style={{ top: 120 }}
       />

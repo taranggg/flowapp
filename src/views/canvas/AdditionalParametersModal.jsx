@@ -1,9 +1,139 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "../../components/ui/input";
+// src/views/canvas/AdditionalParametersModal.jsx
+import React, { useState, useEffect, useMemo } from "react";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
 
-// Custom FieldTemplate for label-above-input layout
+/** ---------- Tailwind-styled widgets (text, number, select) ---------- */
+const baseInputCls =
+  "w-full h-11 px-3 border rounded-lg bg-white text-gray-900 placeholder-gray-400 " +
+  "focus:outline-none focus:ring-2 focus:ring-blue-500";
+
+function TextWidget(props) {
+  const {
+    id,
+    value,
+    required,
+    disabled,
+    readonly,
+    autofocus,
+    placeholder,
+    onChange,
+    onBlur,
+    onFocus,
+    options,
+  } = props;
+  const empty = (options && options.emptyValue) ?? "";
+  return (
+    <input
+      id={id}
+      type="text"
+      className={baseInputCls}
+      value={value ?? ""}
+      required={required}
+      disabled={disabled}
+      readOnly={readonly}
+      autoFocus={autofocus}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value === "" ? empty : e.target.value)}
+      onBlur={(e) => onBlur && onBlur(id, e.target.value)}
+      onFocus={(e) => onFocus && onFocus(id, e.target.value)}
+    />
+  );
+}
+
+function NumberWidget(props) {
+  const {
+    id,
+    value,
+    required,
+    disabled,
+    readonly,
+    autofocus,
+    placeholder,
+    onChange,
+    onBlur,
+    onFocus,
+    options,
+  } = props;
+  const empty = options && options.emptyValue;
+  const step = options && options.step;
+  const min = options && options.min;
+  const max = options && options.max;
+  return (
+    <input
+      id={id}
+      type="number"
+      className={baseInputCls}
+      value={value ?? ""}
+      required={required}
+      disabled={disabled}
+      readOnly={readonly}
+      autoFocus={autofocus}
+      placeholder={placeholder}
+      onChange={(e) => {
+        const v = e.target.value;
+        if (v === "") return onChange(empty);
+        const n = e.currentTarget.valueAsNumber;
+        onChange(Number.isNaN(n) ? empty : n);
+      }}
+      onBlur={(e) => onBlur && onBlur(id, e.target.value)}
+      onFocus={(e) => onFocus && onFocus(id, e.target.value)}
+      step={step ?? "any"}
+      min={min}
+      max={max}
+    />
+  );
+}
+
+function SelectWidget(props) {
+  const {
+    id,
+    value,
+    required,
+    disabled,
+    readonly,
+    autofocus,
+    onChange,
+    options,
+  } = props;
+  const enumOptions = (options && options.enumOptions) || [];
+  return (
+    <select
+      id={id}
+      className={baseInputCls}
+      value={value ?? ""}
+      required={required}
+      disabled={disabled || readonly}
+      autoFocus={autofocus}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {!required && <option value="">Select…</option>}
+      {enumOptions.map((opt) => (
+        <option key={opt.value} value={opt.value}>
+          {opt.label}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+const widgets = {
+  TextWidget,
+  PasswordWidget: TextWidget,
+  EmailWidget: TextWidget,
+  URIWidget: TextWidget,
+  SelectWidget,
+  UpDownWidget: NumberWidget,
+  RangeWidget: NumberWidget,
+  DateWidget: TextWidget,
+  DateTimeWidget: TextWidget,
+  AltDateWidget: TextWidget,
+  AltDateTimeWidget: TextWidget,
+  NumberWidget: NumberWidget,
+  IntegerWidget: NumberWidget,
+};
+
+/** ---------- Label-above-input FieldTemplate ---------- */
 function CustomFieldTemplate(props) {
   const {
     id,
@@ -17,7 +147,9 @@ function CustomFieldTemplate(props) {
     hidden,
     displayLabel,
   } = props;
+
   if (hidden) return <div style={{ display: "none" }}>{children}</div>;
+
   return (
     <div className={classNames + " mb-5"} style={{ minHeight: 60 }}>
       {displayLabel && label && (
@@ -39,40 +171,67 @@ function CustomFieldTemplate(props) {
   );
 }
 
+/** ---------- Helper: accept a tool or a raw schema, return just toolParameters ---------- */
+function resolveToolParametersSchema(schemaOrTool) {
+  if (!schemaOrTool) return { type: "object", properties: {} };
+  // If the caller passed the whole tool object, pick toolParameters.
+  if (schemaOrTool.toolParameters) return schemaOrTool.toolParameters;
+  // Otherwise assume they passed a JSON Schema object already.
+  return schemaOrTool;
+}
+
+/** ---------- Component ---------- */
+// Removed duplicate import of React and hooks
+// ...existing code...
 export default function AdditionalParametersModal({
   isOpen,
   onClose,
   nodeData,
   onSave,
-  schema,
+  schema, // pass either selectedTool.toolParameters OR the whole tool object
   uiSchema,
-  formData,
 }) {
-  // For legacy static form fallback
+  // Always use the latest from nodeData.data.toolParameterValues for ToolNode
+  const currentFormData = useMemo(
+    () =>
+      nodeData && nodeData.data && nodeData.data.toolParameterValues
+        ? nodeData.data.toolParameterValues
+        : {},
+    [nodeData]
+  );
+  const [dynamicFormData, setDynamicFormData] = useState(currentFormData);
   const [maxIterations, setMaxIterations] = useState(
-    nodeData?.data?.maxIterations || 0
+    (nodeData && nodeData.data && nodeData.data.maxIterations) || 0
   );
 
-  // For dynamic RJSF form
-  const [dynamicFormData, setDynamicFormData] = useState(formData || {});
+  useEffect(() => {
+    setDynamicFormData(currentFormData);
+  }, [currentFormData, isOpen]);
 
   useEffect(() => {
-    if (nodeData?.data) {
+    if (nodeData && nodeData.data) {
       setMaxIterations(nodeData.data.maxIterations || 0);
     }
   }, [nodeData]);
 
-  useEffect(() => {
-    setDynamicFormData(formData || {});
-  }, [formData, isOpen]);
+  // Save toolParameterValues under node.data.toolParameterValues
+  const handleDynamicSave = ({ formData }) => {
+    if (onSave && nodeData)
+      onSave(nodeData.id, { toolParameterValues: formData });
+    onClose();
+  };
 
-  // Static form input handler (for legacy fallback)
-  const handleInputChange = (e) => {
+  const handleFallbackSave = () => {
+    if (onSave && nodeData) onSave(nodeData.id, { maxIterations });
+    onClose();
+  };
+
+  const handleFallbackChange = (e) => {
     const value = e.target.value;
     if (value === "") {
       setMaxIterations("");
     } else {
-      const numValue = parseInt(value);
+      const numValue = parseInt(value, 10);
       if (!isNaN(numValue) && numValue >= 0) {
         setMaxIterations(numValue);
       }
@@ -81,33 +240,35 @@ export default function AdditionalParametersModal({
 
   if (!isOpen) return null;
 
-  // RJSF form submit handler
-  const handleDynamicSave = ({ formData }) => {
-    if (onSave && nodeData) {
-      onSave(nodeData.id, formData);
-    }
-    onClose();
-  };
+  const effectiveSchema = resolveToolParametersSchema(schema);
+  const mergedUiSchema = { "ui:label": false, ...(uiSchema || {}) };
 
-  // Static form save handler
-  const handleSave = () => {
-    if (onSave && nodeData) {
-      onSave(nodeData.id, { maxIterations });
-    }
-    onClose();
-  };
+  const hasSchemaFields =
+    effectiveSchema &&
+    effectiveSchema.properties &&
+    Object.keys(effectiveSchema.properties).length > 0;
 
+  const isTool = !!(
+    nodeData &&
+    nodeData.data &&
+    (nodeData.data.toolName ||
+      nodeData.data.toolId ||
+      nodeData.data.toolParameters)
+  );
+  const saveBtnClass = isTool
+    ? "px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+    : "px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600";
   return (
     <div className="fixed inset-0 bg-stone-950/80 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-xl">
-        {/* If schema is provided, render RJSF form, else fallback to static */}
-        {schema ? (
+        {hasSchemaFields ? (
           <Form
-            schema={schema}
-            uiSchema={uiSchema}
+            schema={effectiveSchema}
+            uiSchema={mergedUiSchema}
             formData={dynamicFormData}
             validator={validator}
             FieldTemplate={CustomFieldTemplate}
+            widgets={widgets}
             onChange={({ formData }) => setDynamicFormData(formData)}
             onSubmit={handleDynamicSave}
             showErrorList={false}
@@ -120,42 +281,42 @@ export default function AdditionalParametersModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              >
+              <button type="submit" className={saveBtnClass}>
                 Save
               </button>
             </div>
           </Form>
         ) : (
-          <div className="space-y-4">
-            <div>
+          // Minimal fallback if no schema passed
+          <div>
+            <div className="mb-5" style={{ minHeight: 60 }}>
               <label
                 htmlFor="maxIterations"
-                className="block text-gray-700 font-medium mb-3"
+                className="block text-base font-semibold text-gray-900 mb-1"
               >
                 Max Iterations
               </label>
-              <Input
+              <input
                 id="maxIterations"
                 type="number"
-                value={maxIterations}
-                onChange={handleInputChange}
                 min="0"
-                className="w-full h-12 text-lg px-4 border border-gray-200 rounded-lg"
+                value={maxIterations}
+                onChange={handleFallbackChange}
+                className={baseInputCls}
               />
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button
+                type="button"
                 onClick={onClose}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                type="button"
+                onClick={handleFallbackSave}
+                className={saveBtnClass}
               >
                 Save
               </button>

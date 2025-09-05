@@ -53,13 +53,42 @@ const CanvasView = () => {
 
   // Function to update node data
   const updateNodeData = (nodeId, newData) => {
-    setNodes((prevNodes) =>
-      prevNodes.map((node) =>
-        node.id === nodeId
-          ? { ...node, data: { ...node.data, ...newData } }
-          : node
-      )
+    // If this is a ToolNode and newData is user input, store as toolParameterValues
+    let patchedData = { ...newData };
+    const node = nodes.find((n) => n.id === nodeId);
+    if (
+      node &&
+      node.data &&
+      node.data.toolName &&
+      (newData.toolParameters || newData.additionalParameters)
+    ) {
+      // User input from modal is in toolParameters or additionalParameters, store as toolParameterValues
+      const values = newData.toolParameters || newData.additionalParameters;
+      patchedData = { ...newData, toolParameterValues: values };
+      delete patchedData.toolParameters;
+      delete patchedData.additionalParameters;
+    }
+    console.log(
+      "[updateNodeData] nodeId:",
+      nodeId,
+      "patchedData:",
+      patchedData
     );
+    setNodes((prevNodes) => {
+      const updated = prevNodes.map((node) => {
+        if (node.id === nodeId) {
+          const updatedNode = {
+            ...node,
+            data: { ...node.data, ...patchedData },
+          };
+          console.log("[updateNodeData] Updated node:", updatedNode);
+          return updatedNode;
+        }
+        return node;
+      });
+      console.log("[updateNodeData] Updated nodes array:", updated);
+      return updated;
+    });
   };
 
   // Copy node function
@@ -67,27 +96,33 @@ const CanvasView = () => {
     // Get current nodes from Canvas to get updated positions
     const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
     const sourceNode = currentNodes.find((n) => n.id === nodeId);
-
     if (!sourceNode) return;
 
+    // Determine if this is a tool node (by toolName)
+    const isTool = !!sourceNode.data.toolName;
+    const baseName = isTool
+      ? sourceNode.data.toolName || "Tool"
+      : sourceNode.data.title || "ReAct Agent for LLMs";
+    const nameField = isTool ? "toolName" : "title";
+
     // Find existing copies to determine the next number
-    const baseName = nodeData.title || "ReAct Agent for LLMs";
-    const existingCopies = currentNodes.filter(
-      (node) =>
-        node.data.title &&
-        (node.data.title === baseName ||
-          node.data.title.match(
+    const existingCopies = currentNodes.filter((node) => {
+      const val = node.data[nameField];
+      return (
+        val &&
+        (val === baseName ||
+          val.match(
             new RegExp(
               `^${baseName.replace(
-                /[.*+?^${}()|[\]\\]/g,
+                /[.*+?^${}()|[\\]\\]/g,
                 "\\$&"
               )} \\((\\d+)\\)$`
             )
           ))
-    );
-
+      );
+    });
     const copyNumber = existingCopies.length;
-    const newTitle = `${baseName} (${copyNumber})`;
+    const newName = `${baseName} (${copyNumber})`;
 
     // Create new node with copied data
     const newNode = {
@@ -99,10 +134,9 @@ const CanvasView = () => {
       },
       data: {
         ...sourceNode.data,
-        title: newTitle,
+        [nameField]: newName,
       },
     };
-
     setNodes((prevNodes) => [...prevNodes, newNode]);
   };
 
@@ -116,19 +150,32 @@ const CanvasView = () => {
     // Get current nodes from Canvas to get updated data
     const currentNodes = canvasRef.current?.getCurrentNodes() || nodes;
     const currentNode = currentNodes.find((n) => n.id === nodeId);
-
-    const nodeInfo = {
-      nodeId: nodeId, // Store the nodeId separately
-      id: nodeId,
-      title: nodeData.title || "ReAct Agent for LLMs",
-      maxIterations: nodeData.maxIterations || 0,
-      type: "ReActAgentNode",
-      description: nodeData.description,
-      ...nodeData,
-      // Add current node data if available
-      ...(currentNode?.data || {}),
-    };
-
+    console.log(
+      "[handleInfoNode] nodeId:",
+      nodeId,
+      "currentNode:",
+      currentNode
+    );
+    const isTool = !!currentNode?.data?.toolName;
+    let nodeInfo;
+    if (isTool) {
+      // Pass the whole node object for ToolNode, so NodeInfoModal can access .data
+      nodeInfo = currentNode;
+      console.log("[handleInfoNode] ToolNode nodeInfo:", nodeInfo);
+    } else {
+      nodeInfo = {
+        nodeId: nodeId, // Store the nodeId separately
+        id: nodeId,
+        title: nodeData.title || "ReAct Agent for LLMs",
+        maxIterations: nodeData.maxIterations || 0,
+        type: "ReActAgentNode",
+        description: nodeData.description,
+        ...nodeData,
+        // Add current node data if available
+        ...(currentNode?.data || {}),
+      };
+      console.log("[handleInfoNode] Agent nodeInfo:", nodeInfo);
+    }
     setCurrentInfoNode(nodeInfo);
     setIsNodeInfoOpen(true);
   };
